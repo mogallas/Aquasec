@@ -1,12 +1,13 @@
 pipeline {
     agent any
+
     stages {
         stage('Scan Base Image') {
             steps {
                 // Get some code from a GitHub repository
-                //comment1
-                git 'https://github.com/mogallas/Aquasec.git'
-                sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 centos:8'
+                git 'https://github.com/kmayer10/ibm-aquasec.git'
+                sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 --format template --template @junit.tpl -o base-image.xml centos:8'
+                junit allowEmptyResults: true, testResults: 'base-image.xml'
             }
         }
         stage('Create Docker Image') {
@@ -16,7 +17,8 @@ pipeline {
         }
         stage('Scan App Image') {
             steps {
-                sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 thinknyx/devopsinaction:1.0'
+                sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 --format template --template @junit.tpl -o app-image.xml thinknyx/devopsinaction:1.0'
+                junit allowEmptyResults: true, testResults: 'app-image.xml'
             }
         }
     }

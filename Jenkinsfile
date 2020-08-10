@@ -5,7 +5,7 @@ pipeline {
         stage('Scan Base Image') {
             steps {
                 // Get some code from a GitHub repository
-                git 'https://github.com/kmayer10/ibm-aquasec.git'
+                git 'https://github.com/mogallas/Aquasec.git'
                 sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 --format template --template @junit.tpl -o base-image.xml centos:8'
                 junit allowEmptyResults: true, testResults: 'base-image.xml'
             }
@@ -17,8 +17,14 @@ pipeline {
         }
         stage('Scan App Image') {
             steps {
-                sh label: '', script: 'trivy client --remote http://54.144.250.10:8080 --format template --template @junit.tpl -o app-image.xml thinknyx/devopsinaction:1.0'
+                sh label: '', script: 'trivy client --exit-code 1 --severity CRITICAL,HIGH  --remote http://54.144.250.10:8080 --format template --template @junit.tpl -o app-image.xml thinknyx/devopsinaction:1.0'
                 junit allowEmptyResults: true, testResults: 'app-image.xml'
+            }
+        }
+        stage('Push to Docker Image') {
+            steps {
+                input 'Would you like to proceed?'
+                sh label: '', script: 'docker push thinknyx/devopsinaction:1.0'
             }
         }
     }
